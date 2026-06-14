@@ -1,0 +1,4 @@
+pytest>=8.0
+# Optional: enables the LLM-judge eval backend (local Ollama via OpenAI-compat
+# endpoint). Deterministic rubric works without it; judge/both fail-open if absent.
+langchain-openai>=0.2

@@ -1,0 +1,47 @@
+"""Smoke tests for the scaffolded hooks: pipe payloads exactly like the
+Copilot runtime does (JSON on stdin, JSON response on stdout)."""
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+HOOKS_DIR = REPO_ROOT / ".github" / "hooks"
+
+
+def run_hook(script, payload, log_dir, env_extra=None, argv=()):
+    env = os.environ.copy()
+    env["HOOKS_LOG_DIR"] = str(log_dir)
+    env.update(env_extra or {})
+    return subprocess.run(
+        [sys.executable, str(HOOKS_DIR / script), *argv],
+        input=json.dumps(payload), capture_output=True, text=True,
+        env=env, cwd=REPO_ROOT,
+    )
+
+
+def test_logger_captures_tool_use(tmp_path):
+    payload = {"hook_event_name": "PreToolUse", "tool_name": "run_in_terminal",
+               "tool_input": {"command": "python sandbox/scripts/fib.py 10"}}
+    proc = run_hook("log_event.py", payload, tmp_path, argv=("preToolUse",))
+    assert proc.returncode == 0 and json.loads(proc.stdout) == {}
+    line = json.loads((tmp_path / "events.jsonl").read_text().splitlines()[0])
+    assert line["toolName"] == "run_in_terminal"
+
+
+def test_guard_denies_traversal(tmp_path):
+    payload = {"tool_name": "run_in_terminal", "tool_input": {"command": "cat ../secret"}}
+    proc = run_hook("guard_pretooluse.py", payload, tmp_path)
+    out = json.loads(proc.stdout)
+    assert out["hookSpecificOutput"]["permissionDecision"] == "deny"
+
+
+def test_eval_gates_low_score(tmp_path):
+    transcript = tmp_path / "t.txt"
+    transcript.write_text("assistant: done.", encoding="utf-8")
+    payload = {"hook_event_name": "Stop", "transcript_path": str(transcript),
+               "stop_hook_active": False}
+    proc = run_hook("eval_subagent.py", payload, tmp_path,
+                    env_extra={"HOOKS_GATING": "1"})
+    assert json.loads(proc.stdout)["hookSpecificOutput"]["decision"] == "block"

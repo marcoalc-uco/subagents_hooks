@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "type": "command",
+        "bash": "python3 .github/hooks/log_event.py sessionStart",
+        "powershell": "python .github/hooks/log_event.py sessionStart",
+        "timeoutSec": 30
+      }
+    ],
+    "preToolUse": [
+      {
+        "type": "command",
+        "bash": "python3 .github/hooks/guard_pretooluse.py",
+        "powershell": "python .github/hooks/guard_pretooluse.py",
+        "timeoutSec": 30
+      },
+      {
+        "type": "command",
+        "bash": "python3 .github/hooks/log_event.py preToolUse",
+        "powershell": "python .github/hooks/log_event.py preToolUse",
+        "timeoutSec": 30
+      }
+    ],
+    "postToolUse": [
+      {
+        "type": "command",
+        "bash": "python3 .github/hooks/log_event.py postToolUse",
+        "powershell": "python .github/hooks/log_event.py postToolUse",
+        "timeoutSec": 30
+      }
+    ],
+    "subagentStart": [
+      {
+        "type": "command",
+        "bash": "python3 .github/hooks/log_event.py subagentStart",
+        "powershell": "python .github/hooks/log_event.py subagentStart",
+        "timeoutSec": 30
+      }
+    ],
+    "subagentStop": [
+      {
+        "type": "command",
+        "bash": "python3 .github/hooks/eval_subagent.py",
+        "powershell": "python .github/hooks/eval_subagent.py",
+        "timeoutSec": 60
+      }
+    ],
+    "stop": [
+      {
+        "type": "command",
+        "bash": "python3 .github/hooks/eval_subagent.py",
+        "powershell": "python .github/hooks/eval_subagent.py",
+        "timeoutSec": 60
+      }
+    ]
+  }
+}

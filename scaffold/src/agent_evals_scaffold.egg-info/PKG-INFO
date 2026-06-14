@@ -1,0 +1,5 @@
+Metadata-Version: 2.4
+Name: agent-evals-scaffold
+Version: 0.1.0
+Summary: Scaffolding CLI: apply runtime hooks + evals (logging, guard, gating) to GitHub Copilot custom agents (.agent.md)
+Requires-Python: >=3.10

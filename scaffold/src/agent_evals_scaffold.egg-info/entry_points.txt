@@ -1,0 +1,2 @@
+[console_scripts]
+agent-evals = agent_evals_scaffold.cli:main

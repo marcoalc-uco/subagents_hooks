@@ -1,0 +1,7 @@
+.venv/
+logs/
+**/sandbox/out/
+__pycache__/
+*.pyc
+.pytest_cache/
+.rtk/

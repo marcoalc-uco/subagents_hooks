@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agent-evals-scaffold"
+version = "0.1.0"
+description = "Scaffolding CLI: apply runtime hooks + evals (logging, guard, gating) to GitHub Copilot custom agents (.agent.md)"
+requires-python = ">=3.10"
+
+[project.scripts]
+agent-evals = "agent_evals_scaffold.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+agent_evals_scaffold = ["templates/**/*.tmpl"]
