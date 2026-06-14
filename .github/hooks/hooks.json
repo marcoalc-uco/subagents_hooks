@@ -42,16 +42,16 @@
     "subagentStop": [
       {
         "type": "command",
-        "bash": "python3 .github/hooks/eval_subagent.py",
-        "powershell": "python .github/hooks/eval_subagent.py",
+        "bash": "python3 .github/hooks/log_event.py subagentStop && python3 .github/hooks/eval_subagent.py",
+        "powershell": "python .github/hooks/log_event.py subagentStop && python .github/hooks/eval_subagent.py",
         "timeoutSec": 60
       }
     ],
     "stop": [
       {
         "type": "command",
-        "bash": "python3 .github/hooks/eval_subagent.py",
-        "powershell": "python .github/hooks/eval_subagent.py",
+        "bash": "python3 .github/hooks/log_event.py stop && python3 .github/hooks/eval_subagent.py",
+        "powershell": "python .github/hooks/log_event.py stop && python .github/hooks/eval_subagent.py",
         "timeoutSec": 60
       }
     ]

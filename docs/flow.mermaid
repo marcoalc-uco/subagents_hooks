@@ -1,0 +1,56 @@
+flowchart TD
+    U([usuario / orquestador]) -->|invoca @sandbox-runner| RT
+
+    subgraph RT[Copilot runtime]
+        direction TB
+
+        SS[sessionStart] --> LOG
+        SAS["subagentStart<br/>matcher por agentName"] -->|"additionalContext<br/>se antepone al prompt"| LOOP
+        SAS --> LOG
+
+        subgraph LOOP[loop del subagente]
+            direction TB
+            PRE[preToolUse] --> GUARD{"guard_pretooluse.py<br/>DENY_RULES"}
+            GUARD -->|"deny · permissionDecision"| DENIED[tool bloqueada inline]
+            GUARD -->|allow| TOOL["tool ejecuta<br/>execute / read / write"]
+            TOOL --> POST[postToolUse]
+            PRE --> LOG
+            POST --> LOG
+            DENIED --> GLOG[(logs/guard.jsonl)]
+            GUARD --> GLOG
+        end
+
+        LOOP -->|subagente termina| STOP[subagentStop]
+        STOP --> EVAL
+        MAIN["stop · agente principal<br/>agent main"] --> EVAL
+    end
+
+    LOG[log_event.py] --> EVENTS[(logs/events.jsonl)]
+
+    subgraph EVALBOX[eval_subagent.py]
+        direction TB
+        EVAL["filtra agentName<br/>lee transcriptPath"] --> SCORE
+        SCORE{"evaluate<br/>mode HOOKS_EVAL_MODE"}
+        SCORE -->|deterministic| DET["regex rubric<br/>3 dims · offline"]
+        SCORE -->|"judge / both"| JUDGE["Ollama LLM-judge<br/>fail-open a determinista"]
+        DET --> VERDICT
+        JUDGE --> VERDICT
+        VERDICT{veredicto}
+    end
+
+    SCORE --> EVALS[(logs/evals.jsonl)]
+
+    VERDICT -->|"no_security_violations False · HARD_FAIL 1"| QUAR["security_quarantine<br/>sin retry · ya denegado inline"]
+    VERDICT -->|"score sobre umbral o gating off"| PASS["pass / observed_fail<br/>respuesta vacia · termina"]
+    VERDICT -->|"score bajo umbral · GATING 1"| BLOCK["reflexion_block<br/>decision block + reason"]
+
+    BLOCK -->|"reason como nuevo prompt<br/>1 sola correccion"| LOOP
+    QUAR --> EVALS
+    PASS --> EVALS
+
+    classDef store fill:#fef3c7,stroke:#d97706;
+    classDef block fill:#fecaca,stroke:#dc2626;
+    classDef ok fill:#bbf7d0,stroke:#16a34a;
+    class EVENTS,EVALS,GLOG store;
+    class DENIED,QUAR,BLOCK block;
+    class PASS ok;
